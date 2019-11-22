@@ -139,13 +139,13 @@
 
 .segment    "DATA"
 	hscroll:
-		.word $0000
+		.byte $00, $00
 	vscroll:
-		.word $0000
+		.byte $00, $00
 	font:
-		.byte $00, $00, $00
+		.byte $00, $00
 	map_base:
-		.byte $00, $00, $00
+		.byte $00, $00
 	map:
 		.byte $00
 	enable:
@@ -165,12 +165,8 @@
 	sta font
 	stx font +1
 	jsr popax
-	sta font +2
-	jsr popax
 	sta map_base
 	stx map_base + 1
-	jsr popax
-	sta map_base + 2
 	jsr popax
 	sta map
 	stx mode
@@ -179,10 +175,78 @@
 	sta VERA_DATA0
 	lda map
 	sta VERA_DATA0
-	
-
-    rts
+	lda map_base
+	sta VERA_DATA0
+	lda map_base + 1
+	sta VERA_DATA0
+	lda font
+	sta VERA_DATA0
+	lda font + 1
+	sta VERA_DATA0
+	lda hscroll
+	sta VERA_DATA0
+	lda vscroll
+	sta VERA_DATA0
+	rts
 .endproc
 
+.export _layer1Setup
+
+.segment    "CODE"
+.proc    _layer1Setup: near
+
+.segment    "DATA"
+	hscroll:
+		.byte $00, $00
+	vscroll:
+		.byte $00, $00
+	font:
+		.byte $00, $00
+	map_base:
+		.byte $00, $00
+	map:
+		.byte $00
+	enable:
+		.byte $00
+	mode:
+		.byte $00
+
+	.segment	"CODE"
+
+	sta vscroll
+	stx vscroll + 1
+	jsr popax
+	jsr popax
+	sta hscroll
+	stx hscroll + 1
+	jsr popax
+	sta font
+	stx font +1
+	jsr popax
+	sta map_base
+	stx map_base + 1
+	jsr popax
+	sta map
+	stx mode
+	
+	VADDR L1_CTRL0
+	lda mode
+	sta VERA_DATA0
+	lda map
+	sta VERA_DATA0
+	lda map_base
+	sta VERA_DATA0
+	lda map_base + 1
+	sta VERA_DATA0
+	lda font
+	sta VERA_DATA0
+	lda font + 1
+	sta VERA_DATA0
+	lda hscroll
+	sta VERA_DATA0
+	lda vscroll
+	sta VERA_DATA0
+	rts
+.endproc
 ; setup layer 0: mode=0/e=1, map=32x32, map=$0000, tile=font0, h/v-scroll=0
 ; #Vera.layerSetup 0, %01100001, $00, L0_MAP_BASE, Vera.FONT_LPETSCII, $0000, $0000
