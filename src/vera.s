@@ -132,10 +132,10 @@
     rts
 .endproc
 
-.export _layerSetup
+.export _layer0Setup
 
 .segment    "CODE"
-.proc    _layerSetup: near
+.proc    _layer0Setup: near
 
 .segment    "DATA"
 	hscroll:
@@ -151,10 +151,6 @@
 	enable:
 		.byte $00
 	mode:
-		.byte $00
-	layer:
-		.byte $00
-	modenable:
 		.byte $00
 
 	.segment	"CODE"
@@ -178,11 +174,13 @@
 	jsr popax
 	sta map
 	stx mode
-	jsr popa
-	sta layer
-
-	lda vscroll
+	VADDR L0_CTRL0
+	lda mode
+	sta VERA_DATA0
+	lda map
+	sta VERA_DATA0
 	
+
     rts
 .endproc
 
