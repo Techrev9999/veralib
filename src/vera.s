@@ -113,23 +113,17 @@
     rts
 .endproc
 
-.export _setScreenRes
+.export _setScreenScale
 
 .segment    "CODE"
-.proc    _setScreenRes: near
+.proc    _setScreenScale: near
 
 .segment    "CODE"
-	rheight = 0
-	rwidth = 0
-	sta rheight
-	stx rheight + 1
-	jsr popax
-	sta rwidth
-	stx rwidth + 1
-	hscale = (rwidth / 5)
-	vscale = ((rheight /15)<<2)
-	VREG	DC_HSCALE, hscale
-	VREG	DC_VSCALE, vscale
+	VADDR DC_VSCALE
+	sta VERA_DATA0	
+	jsr popa
+	VADDR DC_HSCALE
+	sta VERA_DATA0
     rts
 .endproc
 
@@ -139,21 +133,29 @@
 .proc    _layerSetup: near
 
 .segment    "CODE"
-	layer = 0
-	mode = 0
-	enable = 0
-	map = 0
-	map_base = 0
-	font = 0
-	hscroll = 0
-	vscroll = 0
-	
+	hscroll:
+		.word $1111
+	vscroll:
+		.word $1111
+	font:
+		.byte $11, $11, $11
+	map_base:
+		.byte $11, $11, $11
+	map:
+		.byte $11
+	enable:
+		.byte $11
+	mode:
+		.byte $11
+	layer:
+		.byte $11
+
 	sta vscroll
 	stx vscroll + 1
 	jsr popax
 	jsr popax
 	sta hscroll
-	sta hscroll + 1
+	stx hscroll + 1
 	jsr popax
 	sta font
 	stx font +1
@@ -170,6 +172,9 @@
     jsr popax
     sta mode
     stx layer
+
+	lda #00
+	lda vscroll
 
     rts
 .endproc
