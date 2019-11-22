@@ -117,12 +117,17 @@
 
 .segment    "CODE"
 .proc    _setScreenScale: near
+.segment "DATA"
+	vscale:
+		.byte	$00
 
 .segment    "CODE"
+	sta vscale
 	VADDR DC_VSCALE
+	lda vscale
 	sta VERA_DATA0	
-	jsr popa
 	VADDR DC_HSCALE
+	jsr popa
 	sta VERA_DATA0
     rts
 .endproc
@@ -132,23 +137,27 @@
 .segment    "CODE"
 .proc    _layerSetup: near
 
-.segment    "CODE"
+.segment    "DATA"
 	hscroll:
-		.word $1111
+		.word $0000
 	vscroll:
-		.word $1111
+		.word $0000
 	font:
-		.byte $11, $11, $11
+		.byte $00, $00, $00
 	map_base:
-		.byte $11, $11, $11
+		.byte $00, $00, $00
 	map:
-		.byte $11
+		.byte $00
 	enable:
-		.byte $11
+		.byte $00
 	mode:
-		.byte $11
+		.byte $00
 	layer:
-		.byte $11
+		.byte $00
+	modenable:
+		.byte $00
+
+	.segment	"CODE"
 
 	sta vscroll
 	stx vscroll + 1
@@ -168,14 +177,12 @@
 	sta map_base + 2
 	jsr popax
 	sta map
-	stx enable
-    jsr popax
-    sta mode
-    stx layer
+	stx mode
+	jsr popa
+	sta layer
 
-	lda #00
 	lda vscroll
-
+	
     rts
 .endproc
 
