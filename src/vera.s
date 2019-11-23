@@ -111,7 +111,7 @@
 .segment    "CODE"
 .proc    _setDataPort: near
 .segment    "CODE"
-.byte $FF
+;.byte $FF
     sta     VERA_CTRL
     rts
 .endproc
@@ -125,7 +125,7 @@
 		.byte	$00
 
 .segment    "CODE"
-.byte $FF
+;.byte $FF
 	sta vscale
 	VADDR DC_VIDEO
 	lda #%00000001  ;select vga mode
@@ -159,7 +159,7 @@
 		.byte $00
 
 	.segment	"CODE"
-.byte $FF
+;.byte $FF
 	sta vscroll
 	stx vscroll + 1
 	jsr popax
@@ -222,7 +222,7 @@
 		.byte $00
 
 	.segment	"CODE"
-.byte $FF
+;.byte $FF
 	sta vscroll
 	stx vscroll + 1
 	jsr popax
@@ -267,19 +267,18 @@
 
 .segment    "CODE"
 .proc    _copyData: near
+
 .segment    "DATA"
 	count:
 		.byte  $00
-	sourceaddr:
-		.word  $0000
 .segment    "CODE"
-.byte $FF
+;.byte $FF
     ;hard coded for now, but eventually this will be turned into parameters.  Need to get things funcioning before I create extra complexity.
     VADDR PALETTE
     lda #<palette
-    sta sourceaddr
+    sta $10
     lda #>palette
-    sta sourceaddr + 1
+    sta $11
     lda #$02   ;number of bytes to copy over high order
     sta count
     ldx #$00   ;number of bytest low order
@@ -287,24 +286,25 @@
 looploinit:
 	ldy #$00
 looplo:
-	lda sourceaddr, y		; load A with source + y
+	lda ($10), y		; load A with source + y
 	sta VERA_DATA0		; store in data0
 	iny
 	dex
 	bne looplo						; continue if more bytes to xfer
-
-	inc sourceaddr + 1		; increment src(hi) by 1
+	inc $11		; increment src(hi) by 1
 loophi:
 	lda count
 	beq fin
 	dec count
 	bra looploinit
 fin:
+;.byte $FF
 	VADDR FONT_LPETSCII
+ ;.byte $FF
     lda #<fonthud
-    sta sourceaddr
+    sta $10
     lda #>fonthud
-    sta sourceaddr + 1
+    sta $11
     lda #$08
     sta count
     ldx #$00
@@ -312,19 +312,20 @@ fin:
 looploinit2:
 	ldy #$00
 looplo2:
-	lda sourceaddr, y		; load A with source + y
+	lda ($10), y		; load A with source + y
 	sta VERA_DATA0		; store in data0
 	iny
 	dex
 	bne looplo2						; continue if more bytes to xfer
 
-	inc sourceaddr + 1		; increment src(hi) by 1
+	inc $11		; increment src(hi) by 1
 loophi2:
 	lda count
 	beq fin2
 	dec count
 	bra looploinit2
 fin2:
+;.byte $FF
     rts
 
 .endproc
