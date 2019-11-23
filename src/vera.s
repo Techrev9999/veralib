@@ -83,9 +83,11 @@
 	L1_VSCROLL_H	= L1_BASE + 9
 
 	SCREEN_MEM		= $00000		; start of screen memory
-	FONT_ASCII		= $1E800		; Font definition #1 : iso ascii font
+
+	FONT_ASCII	= $1E800		; Font definition #1 : iso ascii font
 	FONT_UPETSCII	= $1F000		; Font definition #2 : PETSCII uppercase
 	FONT_LPETSCII	= $1F800		; Font definition #3 : PETSCII lowercase
+	PALETTE			= $F1000
 
 
 .macro VADDR ADDR 
@@ -109,6 +111,7 @@
 .segment    "CODE"
 .proc    _setDataPort: near
 .segment    "CODE"
+.byte $FF
     sta     VERA_CTRL
     rts
 .endproc
@@ -122,11 +125,13 @@
 		.byte	$00
 
 .segment    "CODE"
+.byte $FF
 	sta vscale
-	VADDR DC_VSCALE
+	VADDR DC_VIDEO
+	lda #%00000001  ;select vga mode
+	sta VERA_DATA0
 	lda vscale
 	sta VERA_DATA0	
-	VADDR DC_HSCALE
 	jsr popa
 	sta VERA_DATA0
     rts
@@ -154,7 +159,7 @@
 		.byte $00
 
 	.segment	"CODE"
-
+.byte $FF
 	sta vscroll
 	stx vscroll + 1
 	jsr popax
@@ -170,6 +175,7 @@
 	jsr popax
 	sta map
 	stx mode
+
 	VADDR L0_CTRL0
 	lda mode
 	sta VERA_DATA0
@@ -185,7 +191,11 @@
 	sta VERA_DATA0
 	lda hscroll
 	sta VERA_DATA0
+	lda hscroll + 1
+	sta VERA_DATA0
 	lda vscroll
+	sta VERA_DATA0
+	lda vscroll + 1
 	sta VERA_DATA0
 	rts
 .endproc
@@ -212,7 +222,7 @@
 		.byte $00
 
 	.segment	"CODE"
-
+.byte $FF
 	sta vscroll
 	stx vscroll + 1
 	jsr popax
@@ -228,7 +238,7 @@
 	jsr popax
 	sta map
 	stx mode
-	
+
 	VADDR L1_CTRL0
 	lda mode
 	sta VERA_DATA0
@@ -244,9 +254,83 @@
 	sta VERA_DATA0
 	lda hscroll
 	sta VERA_DATA0
+	lda hscroll + 1
+	sta VERA_DATA0
 	lda vscroll
+	sta VERA_DATA0
+	lda vscroll + 1
 	sta VERA_DATA0
 	rts
 .endproc
-; setup layer 0: mode=0/e=1, map=32x32, map=$0000, tile=font0, h/v-scroll=0
-; #Vera.layerSetup 0, %01100001, $00, L0_MAP_BASE, Vera.FONT_LPETSCII, $0000, $0000
+
+.export _copyData
+
+.segment    "CODE"
+.proc    _copyData: near
+.segment    "DATA"
+	count:
+		.byte  $00
+	sourceaddr:
+		.word  $0000
+.segment    "CODE"
+.byte $FF
+    ;hard coded for now, but eventually this will be turned into parameters.  Need to get things funcioning before I create extra complexity.
+    VADDR PALETTE
+    lda #<palette
+    sta sourceaddr
+    lda #>palette
+    sta sourceaddr + 1
+    lda #$02   ;number of bytes to copy over high order
+    sta count
+    ldx #$00   ;number of bytest low order
+    beq loophi
+looploinit:
+	ldy #$00
+looplo:
+	lda sourceaddr, y		; load A with source + y
+	sta VERA_DATA0		; store in data0
+	iny
+	dex
+	bne looplo						; continue if more bytes to xfer
+
+	inc sourceaddr + 1		; increment src(hi) by 1
+loophi:
+	lda count
+	beq fin
+	dec count
+	bra looploinit
+fin:
+	VADDR FONT_LPETSCII
+    lda #<fonthud
+    sta sourceaddr
+    lda #>fonthud
+    sta sourceaddr + 1
+    lda #$08
+    sta count
+    ldx #$00
+    beq loophi2
+looploinit2:
+	ldy #$00
+looplo2:
+	lda sourceaddr, y		; load A with source + y
+	sta VERA_DATA0		; store in data0
+	iny
+	dex
+	bne looplo2						; continue if more bytes to xfer
+
+	inc sourceaddr + 1		; increment src(hi) by 1
+loophi2:
+	lda count
+	beq fin2
+	dec count
+	bra looploinit2
+fin2:
+    rts
+
+.endproc
+;#Vera.copyDataToVera palette, Vera.PALETTE, 512
+.segment "DATA"
+	fonthud:
+		.incbin "../res/font-hud.bin"
+	palette:	
+		.incbin "../res/palette.bin"
