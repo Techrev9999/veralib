@@ -276,7 +276,7 @@
     ;hard coded for now, but eventually this will be turned into parameters.  Need to get things funcioning before I create extra complexity.
     VADDR PALETTE
     lda #<palette
-    sta $10
+    sta $10  ; Figure out how to make pretty zero page variables, you nub.
     lda #>palette
     sta $11
     lda #$02   ;number of bytes to copy over high order
@@ -329,7 +329,7 @@ fin2:
     rts
 
 .endproc
-;#Vera.copyDataToVera palette, Vera.PALETTE, 512
+;This belongs in the C-Code, and passed here.
 .segment "DATA"
 	fonthud:
 		.incbin "../res/font-hud.bin"
