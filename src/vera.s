@@ -271,14 +271,18 @@
 .segment    "DATA"
 	count:
 		.byte  $00
+.segment "ZEROPAGE"
+	sourceaddr:
+		.word $0000
 .segment    "CODE"
 ;.byte $FF
     ;hard coded for now, but eventually this will be turned into parameters.  Need to get things funcioning before I create extra complexity.
     VADDR PALETTE
+.byte $FF
     lda #<palette
-    sta $10  ; Figure out how to make pretty zero page variables, you nub.
+    sta sourceaddr  
     lda #>palette
-    sta $11
+    sta sourceaddr +1
     lda #$02   ;number of bytes to copy over high order
     sta count
     ldx #$00   ;number of bytest low order
@@ -286,12 +290,12 @@
 looploinit:
 	ldy #$00
 looplo:
-	lda ($10), y		; load A with source + y
+	lda (sourceaddr), y		; load A with source + y
 	sta VERA_DATA0		; store in data0
 	iny
 	dex
 	bne looplo						; continue if more bytes to xfer
-	inc $11		; increment src(hi) by 1
+	inc sourceaddr +1	; increment src(hi) by 1
 loophi:
 	lda count
 	beq fin
@@ -302,9 +306,9 @@ fin:
 	VADDR FONT_LPETSCII
  ;.byte $FF
     lda #<fonthud
-    sta $10
+    sta sourceaddr
     lda #>fonthud
-    sta $11
+    sta sourceaddr + 1
     lda #$08
     sta count
     ldx #$00
@@ -312,13 +316,13 @@ fin:
 looploinit2:
 	ldy #$00
 looplo2:
-	lda ($10), y		; load A with source + y
+	lda (sourceaddr), y		; load A with source + y
 	sta VERA_DATA0		; store in data0
 	iny
 	dex
 	bne looplo2						; continue if more bytes to xfer
 
-	inc $11		; increment src(hi) by 1
+	inc sourceaddr + 1		; increment src(hi) by 1
 loophi2:
 	lda count
 	beq fin2
