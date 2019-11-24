@@ -11,7 +11,7 @@ extern void fillWindow(uint8_t numCols, uint8_t startCol, uint8_t startRow, uint
 #define L0_MAP_BASE1		0x00000
 #define L1_MAP_BASE1		0x04000		//0x04000
 #define L0_MAP_BASE		0x100000
-#define L1_MAP_BASE		0x104000	
+#define L1_MAP_BASE		0x104000	// Need to add stride to code and remove from addresses.
 
 	// Not sure why these are shifted left 2 bits?
 	//FONT_ASCII	= $1E800		; Font definition #1 : iso ascii font
