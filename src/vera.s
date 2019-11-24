@@ -1,5 +1,6 @@
 		.import         vset, popa, popax
         .include        "cx16.inc"
+        .include		"zeropage.inc"
 ;***************************************************
 ; Constants
 
@@ -40,54 +41,27 @@
 	VRAM_BASE		= $00000
 
 ;	Display composer
-	DC_BASE			= $F0000
+	DC_BASE			= $1F0000
 	DC_VIDEO		= DC_BASE + 0
-	DC_HSCALE		= DC_BASE + 1
-	DC_VSCALE		= DC_BASE + 2
-	DC_BORDER_COLOR	= DC_BASE + 3
-	DC_HSTART_L		= DC_BASE + 4
-	DC_HSTOP_L		= DC_BASE + 5
-	DC_VSTART_L		= DC_BASE + 6
-	DC_VSTOP_L		= DC_BASE + 7
-	DC_STARTSTOP_H	= DC_BASE + 8
-	DC_IRQ_LINE_L	= DC_BASE + 9
-	DC_IRQ_LINE_H	= DC_BASE + 10
 
-;	Palette
-	PALETTE_BASE	= $F1000
 
 ;	Layer 0 
-	L0_BASE 		= $F2000
+	L0_BASE 		= $1F2000
 	L0_CTRL0		= L0_BASE + 0
 	L0_CTRL1		= L0_BASE + 1
-	L0_MAP_BASE_L	= L0_BASE + 2
-	L0_MAP_BASE_H	= L0_BASE + 3
-	L0_TILE_BASE_L	= L0_BASE + 4
-	L0_TILE_BASE_H	= L0_BASE + 5
-	L0_HSCROLL_L	= L0_BASE + 6
-	L0_HSCROLL_H	= L0_BASE + 7
-	L0_VSCROLL_L	= L0_BASE + 8
-	L0_VSCROLL_H	= L0_BASE + 9
 
 ;	Layer 1
-	L1_BASE 		= $F3000
+	L1_BASE 		= $1F3000
 	L1_CTRL0		= L1_BASE + 0
 	L1_CTRL1		= L1_BASE + 1
-	L1_MAP_BASE_L	= L1_BASE + 2
-	L1_MAP_BASE_H	= L1_BASE + 3
-	L1_TILE_BASE_L	= L1_BASE + 4
-	L1_TILE_BASE_H	= L1_BASE + 5
-	L1_HSCROLL_L	= L1_BASE + 6
-	L1_HSCROLL_H	= L1_BASE + 7
-	L1_VSCROLL_L	= L1_BASE + 8
-	L1_VSCROLL_H	= L1_BASE + 9
+
 
 	SCREEN_MEM		= $00000		; start of screen memory
 
-	FONT_ASCII	= $1E800		; Font definition #1 : iso ascii font
-	FONT_UPETSCII	= $1F000		; Font definition #2 : PETSCII uppercase
-	FONT_LPETSCII	= $1F800		; Font definition #3 : PETSCII lowercase
-	PALETTE			= $F1000
+	FONT_ASCII		= $11E800		; Font definition #1 : iso ascii font
+	FONT_UPETSCII	= $11F000		; Font definition #2 : PETSCII uppercase
+	FONT_LPETSCII	= $11F800		; Font definition #3 : PETSCII lowercase
+	PALETTE			= $1F1000
 
 
 .macro VADDR ADDR 
@@ -163,7 +137,6 @@
 	sta vscroll
 	stx vscroll + 1
 	jsr popax
-	jsr popax
 	sta hscroll
 	stx hscroll + 1
 	jsr popax
@@ -226,7 +199,6 @@
 	sta vscroll
 	stx vscroll + 1
 	jsr popax
-	jsr popax
 	sta hscroll
 	stx hscroll + 1
 	jsr popax
@@ -274,11 +246,12 @@
 .segment "ZEROPAGE"
 	sourceaddr:
 		.word $0000
+
 .segment    "CODE"
 ;.byte $FF
     ;hard coded for now, but eventually this will be turned into parameters.  Need to get things funcioning before I create extra complexity.
     VADDR PALETTE
-.byte $FF
+;.byte $FF
     lda #<palette
     sta sourceaddr  
     lda #>palette
@@ -331,8 +304,210 @@ loophi2:
 fin2:
 ;.byte $FF
     rts
-
 .endproc
+
+;void cdecl fillWindow(uint32_t layerMap, uint8_t numCols, uint8_t startCol, uint8_t startRow, uint8_t width, uint8_t height, uint8_t char, uint8_t color);
+.export _fillWindow
+
+.segment    "CODE"
+.proc    _fillWindow: near
+
+.segment    "DATA"
+	numCols:
+		.byte $00
+	startCol:
+		.byte $00
+	startRow:
+		.byte $00
+	height:
+		.byte $00
+	width:
+		.byte $00
+	chr:
+		.byte $00
+	clr:
+		.byte $00
+
+.segment	"CODE"
+;.byte $FF
+	sta 	VERA_ADDR_LO
+	stx 	VERA_ADDR_MID
+	lda sreg
+	sta 	VERA_ADDR_HI
+	jsr popax
+	sta clr
+	stx chr
+	jsr popax
+	sta height
+	stx width
+	jsr popax
+	sta startRow
+	stx startCol
+	jsr popa
+	sta numCols
+
+	cmp 32
+	beq jumpa
+	cmp 64
+	beq jumpb
+	;cmp 128
+	;beq jumpc
+	;cmp 256
+	;beq jumpd
+jumpa:
+	lda startRow
+	ldx startCol
+	AddCwRowColToVAddr32:
+	jmp jumpc
+jumpb:
+	lda startRow
+	ldx startCol
+	AddCwRowColToVAddr64:
+	jmp jumpc
+jumpc:
+		ldy height						; height counter
+jumpd:
+		ldx width						; width counter
+jumpe:
+		lda chr
+		sta VERA_DATA0					; store char
+		lda clr
+		sta VERA_DATA0					; store color
+		dex					; dec col count
+		bne jumpe
+		dey					; dec row count
+		beq fin
+		lda numCols
+		sbc height
+		asl a
+		jsr Add_A_ToVAddr
+		bra jumpd
+fin:
+		rts
+.endproc
+
+.export Add_A_ToVAddr
+
+.segment    "CODE"
+.proc    Add_A_ToVAddr: near
+		clc
+		adc VERA_ADDR_LO
+		sta VERA_ADDR_LO
+		bcc fin
+		lda VERA_ADDR_MID
+		adc #0			; carry is already set
+		sta VERA_ADDR_MID
+		bcc fin
+		inc VERA_ADDR_HI
+fin:
+		rts
+.endproc
+
+.export AddCwColToVAddr
+
+.segment    "CODE"
+.proc    AddCwColToVAddr: near
+		;lda cw_col load cw_col in a before calling
+		asl a
+		clc
+		adc VERA_ADDR_LO
+		sta VERA_ADDR_LO
+		bcc fin
+		lda VERA_ADDR_MID
+		adc #0			; carry is already set
+		sta VERA_ADDR_MID
+		bcc fin
+		inc VERA_ADDR_HI
+fin:
+		rts
+.endproc
+
+.export AddCwRowColToVAddr32
+
+.segment    "CODE"
+.proc    AddCwRowColToVAddr32: near
+.segment 	"DATA"
+	startRow:
+		.byte $00	
+	startCol:
+		.byte $00
+.segment    "CODE"
+		;lda cw_row call with startRow in a, startCol in x.
+		sta startRow
+		stx startCol
+		asl a
+		asl a
+		asl a
+		asl a
+		asl a
+		asl a
+		clc
+		adc VERA_ADDR_LO
+		sta VERA_ADDR_LO
+		bcc jump
+		lda VERA_ADDR_MID
+		adc #0
+		sta VERA_ADDR_MID
+		bcc jump
+		lda VERA_ADDR_HI
+		adc #0
+		sta VERA_ADDR_HI
+jump:
+		lda startRow
+		lsr a
+		lsr a
+		clc
+		adc VERA_ADDR_MID
+		sta VERA_ADDR_MID
+		bcc fin
+		inc VERA_ADDR_HI
+		lda startCol
+		jsr AddCwColToVAddr
+		rts
+fin:
+.endproc
+
+.export AddCwRowColToVAddr64
+
+.segment    "CODE"
+.proc    AddCwRowColToVAddr64: near
+.segment 	"DATA"
+	startRow:
+		.byte $00	
+	startCol:
+		.byte $00
+.segment    "CODE"
+		;lda cw_row call with startRow in a, startCol in x.
+		sta startRow
+		stx startCol
+		lsr a
+		bcc jump
+		lda #$80
+		clc
+		adc VERA_ADDR_LO
+		sta VERA_ADDR_LO
+		bcc jump
+		lda VERA_ADDR_MID
+		adc #0
+		sta VERA_ADDR_MID
+		bcc jump
+		lda VERA_ADDR_HI
+		adc #0
+		sta VERA_ADDR_HI
+jump:
+		lda startRow
+		lsr a
+		clc
+		adc VERA_ADDR_MID
+		sta VERA_ADDR_MID
+		bcc fin
+		inc VERA_ADDR_HI
+		lda startCol
+		jsr AddCwColToVAddr
+		rts
+fin:
+.endproc
+
 ;This belongs in the C-Code, and passed here.
 .segment "DATA"
 	fonthud:
