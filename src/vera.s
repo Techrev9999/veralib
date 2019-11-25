@@ -1,25 +1,6 @@
-		.import         vset, popa, popax
-        .include        "cx16.inc"
-        .include		"zeropage.inc"
-;***************************************************
-; Constants
-
-	ADDR_INC_0  	= $000000
-	ADDR_INC_1  	= $100000
-	ADDR_INC_2  	= $200000
-	ADDR_INC_4  	= $300000
-	ADDR_INC_8  	= $400000
-	ADDR_INC_16  	= $500000
-	ADDR_INC_32 	= $600000
-	ADDR_INC_64  	= $700000
-	ADDR_INC_128  	= $800000
-	ADDR_INC_256  	= $900000
-	ADDR_INC_512  	= $A00000
-	ADDR_INC_1024  	= $B00000
-	ADDR_INC_2048  	= $C00000
-	ADDR_INC_4096  	= $D00000
-	ADDR_INC_8192  	= $E00000
-	ADDR_INC_16384 	= $F00000
+		.import         vset, popa, popax		; Import the functions we need to pull data from the stack.
+        .include        "cx16.inc"				; This is a necessary include file, for some basic functionality we need.
+        .include		"zeropage.inc"			; This gives us some nice functionality when it comes to zeropage addressing.
 
 ;***************************************************
 ;	VERA external address space
@@ -37,98 +18,85 @@
 ;***************************************************
 ;	VERA internal registers
 
-;	Video RAM
-	VRAM_BASE		= $00000
 
 ;	Display composer
-	DC_BASE			= $F0000
-	DC_VIDEO		= DC_BASE + 0
+	DC_VIDEO			= $F0000
 
-
-;	Layer 0 
+;	Layer 0 Addresses
 	L0_BASE 		= $F2000
 	L0_CTRL0		= L0_BASE + 0
 	L0_CTRL1		= L0_BASE + 1
 
-;	Layer 1
+;	Layer 1 Addresses
 	L1_BASE 		= $F3000
 	L1_CTRL0		= L1_BASE + 0
 	L1_CTRL1		= L1_BASE + 1
 
 
-	SCREEN_MEM		= $00000		; start of screen memory
-
-	FONT_ASCII		= $1E800		; Font definition #1 : iso ascii font
-	FONT_UPETSCII	= $1F000		; Font definition #2 : PETSCII uppercase
+	FONT_ASCII		= $1E800		; Font definition #1 : iso ascii font      --  These 4 definitions are here temporarily, until I
+	FONT_UPETSCII	= $1F000		; Font definition #2 : PETSCII uppercase   --  fix the copy data function.
 	FONT_LPETSCII	= $1F800		; Font definition #3 : PETSCII lowercase
 	PALETTE			= $F1000
 
 
-.macro VADDR ADDR
-	LDA 	#<(ADDR >> 16)
-	ORA		stride
-	STA 	VERA_ADDR_HI
-	LDA 	#<(ADDR >> 8)
+.macro VADDR ADDR 					; This macro will take an address passed to it, add the stride value, and send it to Vera.
+	LDA 	#<(ADDR >> 16)			; The stride value is added to the first 4 bits of the 24 bit address.
+	ORA		stride					; So, if you have a stride of 1, and the address is $F0000, what will be sent to Vera
+	STA 	VERA_ADDR_HI			; will be $1F0000.
+	LDA 	#<(ADDR >> 8)			; The stride must be added to all Vera addressing.
 	STA 	VERA_ADDR_MID
 	LDA 	#<(ADDR)
 	STA 	VERA_ADDR_LO
 .endmacro
 
-
-.macro VREG ADDR, DATA 
-	VADDR	ADDR
-	LDA 	#(DATA)
-	STA 	VERA_DATA0
-.endmacro
-
-.segment "ZEROPAGE"
-	stride:
+.segment "ZEROPAGE"					; I use a global zero page address for the stride variable, since it must be available
+	stride:							; to almost all Vera functions.
 		.byte $00
 
-.export _setDataPort
-
-.segment    "CODE"
+.export _setDataPort				; This function I use to set up the Vera Dataport, and set the global stride variable.
+									; I, currently, don't know of a reason why the stride would change after initialization.
+.segment    "CODE"					; If I find one, I will change this system.
 .proc    _setDataPort: near
 .segment    "CODE"
 ;.byte $FF
-    sta     VERA_CTRL
-    jsr popa
-    asl
-    asl
+    sta     VERA_CTRL				; Since we are using fastcall parameter passing from C, by default, the first parameter
+    jsr popa  						; comes in A by default.  We, then, pop the next value off the stack, which is the stride.
+    asl  							; I shift the stride value left 4 bits, which allows me to easily or it with the high byte
+    asl 							; of the 24 bit Vera addresses we will be using in later functions.
     asl
     asl
     sta stride
     rts
 .endproc
 
-.export _setScreenScale
+.export _setScreenScale				; This function sets the Vera screen scale.
 
 .segment    "CODE"
 .proc    _setScreenScale: near
 .segment "DATA"
 	vscale:
-		.byte	$00
+		.byte	$00					; I set up local variables to hold data I pop from the stack, so I can use it more effectively.
 
 .segment    "CODE"
 ;.byte $FF
 	sta vscale
-	VADDR DC_VIDEO
-	lda #%00000001  ;select vga mode
+	VADDR DC_VIDEO					; An example of passing a 24 bit address to Vera using VADDR.  This one is for video configurations.
+	lda #%00000001  				; select vga mode, this may need to be parameterized (probably).
 	sta VERA_DATA0
 	lda vscale
 	sta VERA_DATA0	
-	jsr popa
+	jsr popa 						; Popping another parameter off the stack.
 	sta VERA_DATA0
     rts
 .endproc
 
-.export _layer0Setup
+.export _layer0Setup				; Layer0Setup for setting up the Layer 0 configuration options.
 
 .segment    "CODE"
 .proc    _layer0Setup: near
 
 .segment    "DATA"
-	hscroll:
+	hscroll: 						; More variables for Layer0Setup
 		.byte $00, $00
 	vscroll:
 		.byte $00, $00
@@ -147,7 +115,7 @@
 ;.byte $FF
 	sta vscroll
 	stx vscroll + 1
-	jsr popax
+	jsr popax				; popax lets me pop 2 bytes off the stack at once.  One goes in A, the other in X.  It helps speed things up.
 	sta hscroll
 	stx hscroll + 1
 	jsr popax
@@ -184,7 +152,7 @@
 	rts
 .endproc
 
-.export _layer1Setup
+.export _layer1Setup			;Layer1Setup.  Layer 1 configuration options.
 
 .segment    "CODE"
 .proc    _layer1Setup: near
@@ -246,7 +214,7 @@
 	rts
 .endproc
 
-.export _copyData
+.export _copyData				;This is copydata, it is currently a hack, and needs to be rewritten.
 
 .segment    "CODE"
 .proc    _copyData: near
@@ -318,7 +286,7 @@ fin2:
 .endproc
 
 ;void cdecl fillWindow(uint32_t layerMap, uint8_t numCols, uint8_t startCol, uint8_t startRow, uint8_t width, uint8_t height, uint8_t char, uint8_t color);
-.export _fillWindow
+.export _fillWindow   ; fillWindow for placing different sized rectangles on the screen.
 
 .segment    "CODE"
 .proc    _fillWindow: near
@@ -341,9 +309,9 @@ fin2:
 
 .segment	"CODE"
 ;.byte $FF
-	sta 	VERA_ADDR_LO
-	stx 	VERA_ADDR_MID
-	lda sreg
+	sta 	VERA_ADDR_LO				; By default, with fastcall, if the first variable is more than 16 bits, the high order bits
+	stx 	VERA_ADDR_MID 				; in a 24 bit addresswill be in sreg.  This is a zeropage register, and is why we include 
+	lda sreg 							; zeropage.inc.
 	ORA stride 
 	sta 	VERA_ADDR_HI
 	jsr popax
@@ -401,10 +369,10 @@ fin:
 		rts
 .endproc
 
-.export Add_A_ToVAddr
-
-.segment    "CODE"
-.proc    Add_A_ToVAddr: near
+.export Add_A_ToVAddr					; The rest of this is pretty much about finding the location in video memory
+										; to place the characters in, and placing them.
+.segment    "CODE"						; I will, probably, create other functions that use different methods to
+.proc    Add_A_ToVAddr: near 			; display tiles and graphics information.  It's a bit messy, but it works.
 		clc
 		adc VERA_ADDR_LO
 		sta VERA_ADDR_LO
@@ -525,7 +493,13 @@ fin:
 		rts
 .endproc
 
-;This belongs in the C-Code, and passed here.
+; Still to add for the short term are the fillChar functions, and 128 bit and 256 bit functionality.
+
+
+; This belongs in the C-Code, and passed here.  Moving this out of the library is one of my next tasks.
+; Anything that is specific to a game or program should not be in the library at all.  Unless I add a
+; default font and palette here that can be overwritten or something.
+
 .segment "DATA"
 	fonthud:
 		.incbin "../res/font-hud.bin"
