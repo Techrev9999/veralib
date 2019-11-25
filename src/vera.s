@@ -2,6 +2,12 @@
         .include        "cx16.inc"				; This is a necessary include file, for some basic functionality we need.
         .include		"zeropage.inc"			; This gives us some nice functionality when it comes to zeropage addressing.
 
+; Much of this code was stolen from Mick Clift and jdifelici from the Murray forums.  I did all the stuff linking to C
+; and I reworked some bits here and there - including getting it to work with .34 version of the emulator.  Many of the
+; functions have been drastically reworked, but enough of the original code is still here to give credit to the original
+; authors.  Who, if they have any issues with me using their code here, they can let me know and I'll remove it and replace
+; it with something else.
+
 ;***************************************************
 ;	VERA external address space
 
