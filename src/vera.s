@@ -344,11 +344,12 @@ fin2:
 	sta startRow
 	stx startCol
 	jsr popa
+	inc
 	sta numCols
 
-	cmp 32
+	cmp #$21
 	beq jumpa
-	cmp 64
+	cmp #$41
 	beq jumpb
 	;cmp 128
 	;beq jumpc
@@ -357,12 +358,12 @@ fin2:
 jumpa:
 	lda startRow
 	ldx startCol
-	AddCwRowColToVAddr32:
+	jsr AddCwRowColToVAddr32
 	jmp jumpc
 jumpb:
 	lda startRow
 	ldx startCol
-	AddCwRowColToVAddr64:
+	jsr AddCwRowColToVAddr64
 	jmp jumpc
 jumpc:
 		ldy height						; height counter
@@ -377,8 +378,10 @@ jumpe:
 		bne jumpe
 		dey					; dec row count
 		beq fin
+;.byte $FF
+		clc
 		lda numCols
-		sbc height
+		sbc width
 		asl a
 		jsr Add_A_ToVAddr
 		bra jumpd
@@ -432,6 +435,7 @@ fin:
 	startCol:
 		.byte $00
 .segment    "CODE"
+;.byte $FF
 		;lda cw_row call with startRow in a, startCol in x.
 		sta startRow
 		stx startCol
@@ -461,10 +465,10 @@ jump:
 		sta VERA_ADDR_MID
 		bcc fin
 		inc VERA_ADDR_HI
+fin:
 		lda startCol
 		jsr AddCwColToVAddr
 		rts
-fin:
 .endproc
 
 .export AddCwRowColToVAddr64
@@ -477,6 +481,7 @@ fin:
 	startCol:
 		.byte $00
 .segment    "CODE"
+;.byte $FF
 		;lda cw_row call with startRow in a, startCol in x.
 		sta startRow
 		stx startCol
@@ -502,10 +507,10 @@ jump:
 		sta VERA_ADDR_MID
 		bcc fin
 		inc VERA_ADDR_HI
+fin:
 		lda startCol
 		jsr AddCwColToVAddr
 		rts
-fin:
 .endproc
 
 ;This belongs in the C-Code, and passed here.
