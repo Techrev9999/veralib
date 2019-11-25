@@ -10,6 +10,17 @@ extern void fillWindow(uint8_t numCols, uint8_t startCol, uint8_t startRow, uint
 #define FONT_LPETSCII	0x1F800		// PETSCII lowercase
 #define L0_MAP_BASE		0x00000
 #define L1_MAP_BASE		0x04000		//0x04000
+
+void mlayer0Setup(uint8_t modeenable, uint8_t mapSize, int32_t mapBase, int32_t font, int16_t hscroll, int16_t vscroll)
+{
+	layer0Setup(modeenable, mapSize, (mapBase >> 2), (font >> 2), hscroll, vscroll);
+}
+
+void mlayer1Setup(uint8_t modeenable, uint8_t mapSize, int32_t mapBase, int32_t font, int16_t hscroll, int16_t vscroll)
+{
+	layer1Setup(modeenable, mapSize, (mapBase >> 2), (font >> 2), hscroll, vscroll);
+}
+
 //#define L0_MAP_BASE		0x100000
 //#define L1_MAP_BASE		0x104000	// Need to add stride to code and remove from addresses.
 
