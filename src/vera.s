@@ -7,6 +7,7 @@
 ; functions have been drastically reworked, but enough of the original code is still here to give credit to the original
 ; authors.  Who, if they have any issues with me using their code here, they can let me know and I'll remove it and replace
 ; it with something else.
+; If anyone wants to use this, feel free.  Just give credit where credit is due :D.
 
 ;***************************************************
 ;	VERA external address space
