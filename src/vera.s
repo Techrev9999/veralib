@@ -493,6 +493,61 @@ fin:
 		rts
 .endproc
 
+.export AddCwRowColToVAddr128
+
+.segment    "CODE"
+.proc    AddCwRowColToVAddr128: near
+.segment 	"DATA"
+	startRow:
+		.byte $00	
+	startCol:
+		.byte $00
+.segment    "CODE"
+;.byte $FF
+		sta startRow
+		stx startCol
+		clc
+		adc VERA_ADDR_MID
+		sta VERA_ADDR_MID
+		bcc fin
+		inc VERA_ADDR_HI
+fin:
+		lda startCol
+		jsr AddCwColToVAddr
+		rts
+.endproc
+
+.export AddCwRowColToVAddr256
+
+.segment    "CODE"
+.proc    AddCwRowColToVAddr256: near
+.segment 	"DATA"
+	startRow:
+		.byte $00	
+	startCol:
+		.byte $00
+.segment    "CODE"
+;.byte $FF
+		sta startRow
+		stx startCol
+		clc
+		adc VERA_ADDR_MID
+		sta VERA_ADDR_MID
+		bcc loopa
+		inc VERA_ADDR_HI
+loopa:
+		lda startRow
+		clc
+		adc VERA_ADDR_MID
+		sta VERA_ADDR_MID
+		bcc fin
+		inc VERA_ADDR_HI
+fin:
+		lda startCol
+		jsr AddCwColToVAddr
+		rts
+.endproc
+
 ; Still to add for the short term are the fillChar functions, and 128 bit and 256 bit functionality.
 
 
