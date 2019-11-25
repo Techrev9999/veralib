@@ -306,6 +306,8 @@ fin2:
 		.byte $00
 	clr:
 		.byte $00
+	winc:
+		.byte $00
 
 .segment	"CODE"
 ;.byte $FF
@@ -324,17 +326,19 @@ fin2:
 	sta startRow
 	stx startCol
 	jsr popa
-	inc
 	sta numCols
-
-	cmp #$21
+	inc
+	sbc width
+	asl a
+	sta winc
+	lda numCols
+	cmp #$20
 	beq jumpa
-	cmp #$41
+	cmp #$40
 	beq jumpb
-	;cmp 128
-	;beq jumpc
-	;cmp 256
-	;beq jumpd
+	cmp #$80
+	beq jumpc
+	jmp jumpd
 jumpa:
 	lda startRow
 	ldx startCol
@@ -360,9 +364,7 @@ jumpe:
 		beq fin
 ;.byte $FF
 		clc
-		lda numCols
-		sbc width
-		asl a
+		lda winc
 		jsr Add_A_ToVAddr
 		bra jumpd
 fin:
@@ -548,7 +550,7 @@ fin:
 		rts
 .endproc
 
-; Still to add for the short term are the fillChar functions, and 128 bit and 256 bit functionality.
+; Still to add for the short term are the fillChar functions.
 
 
 ; This belongs in the C-Code, and passed here.  Moving this out of the library is one of my next tasks.
