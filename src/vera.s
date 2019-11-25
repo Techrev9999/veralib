@@ -41,31 +41,32 @@
 	VRAM_BASE		= $00000
 
 ;	Display composer
-	DC_BASE			= $1F0000
+	DC_BASE			= $F0000
 	DC_VIDEO		= DC_BASE + 0
 
 
 ;	Layer 0 
-	L0_BASE 		= $1F2000
+	L0_BASE 		= $F2000
 	L0_CTRL0		= L0_BASE + 0
 	L0_CTRL1		= L0_BASE + 1
 
 ;	Layer 1
-	L1_BASE 		= $1F3000
+	L1_BASE 		= $F3000
 	L1_CTRL0		= L1_BASE + 0
 	L1_CTRL1		= L1_BASE + 1
 
 
 	SCREEN_MEM		= $00000		; start of screen memory
 
-	FONT_ASCII		= $11E800		; Font definition #1 : iso ascii font
-	FONT_UPETSCII	= $11F000		; Font definition #2 : PETSCII uppercase
-	FONT_LPETSCII	= $11F800		; Font definition #3 : PETSCII lowercase
-	PALETTE			= $1F1000
+	FONT_ASCII		= $1E800		; Font definition #1 : iso ascii font
+	FONT_UPETSCII	= $1F000		; Font definition #2 : PETSCII uppercase
+	FONT_LPETSCII	= $1F800		; Font definition #3 : PETSCII lowercase
+	PALETTE			= $F1000
 
 
-.macro VADDR ADDR 
+.macro VADDR ADDR
 	LDA 	#<(ADDR >> 16)
+	ORA		stride
 	STA 	VERA_ADDR_HI
 	LDA 	#<(ADDR >> 8)
 	STA 	VERA_ADDR_MID
@@ -73,12 +74,16 @@
 	STA 	VERA_ADDR_LO
 .endmacro
 
+
 .macro VREG ADDR, DATA 
 	VADDR	ADDR
 	LDA 	#(DATA)
 	STA 	VERA_DATA0
 .endmacro
 
+.segment "ZEROPAGE"
+	stride:
+		.byte $00
 
 .export _setDataPort
 
@@ -87,6 +92,12 @@
 .segment    "CODE"
 ;.byte $FF
     sta     VERA_CTRL
+    jsr popa
+    asl
+    asl
+    asl
+    asl
+    sta stride
     rts
 .endproc
 
@@ -333,6 +344,7 @@ fin2:
 	sta 	VERA_ADDR_LO
 	stx 	VERA_ADDR_MID
 	lda sreg
+	ORA stride 
 	sta 	VERA_ADDR_HI
 	jsr popax
 	sta clr
