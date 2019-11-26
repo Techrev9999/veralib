@@ -80,17 +80,13 @@
 
 .segment    "CODE"
 .proc    _setScreenScale: near
-.segment "DATA"
-	vscale:
-		.byte	$00					; I set up local variables to hold data I pop from the stack, so I can use it more effectively.
 
 .segment    "CODE"
 ;.byte $FF
-	sta vscale
 	VADDR DC_VIDEO					; An example of passing a 24 bit address to Vera using VADDR.  This one is for video configurations.
 	lda #%00000001  				; select vga mode, this may need to be parameterized (probably).
 	sta VERA_DATA0
-	lda vscale
+	jsr popa
 	sta VERA_DATA0	
 	jsr popa 						; Popping another parameter off the stack.
 	sta VERA_DATA0
@@ -340,22 +336,31 @@ fin2:
 	sta winc
 	lda numCols
 	cmp #$20
-	beq jumpa
+	beq jump32
 	cmp #$40
-	beq jumpb
+	beq jump64
 	cmp #$80
-	beq jumpc
-	jmp jumpd
-jumpa:
+	beq jump128
+	jmp jump256
+jump32:
 	lda startRow
 	ldx startCol
 	jsr AddCwRowColToVAddr32
 	jmp jumpc
-jumpb:
+jump64:
 	lda startRow
 	ldx startCol
 	jsr AddCwRowColToVAddr64
 	jmp jumpc
+jump128:
+	lda startRow
+	ldx startCol
+	jsr AddCwRowColToVAddr128
+	jmp jumpc
+jump256:
+	lda startRow
+	ldx startCol
+	jsr AddCwRowColToVAddr256
 jumpc:
 		ldy height						; height counter
 jumpd:
@@ -376,6 +381,72 @@ jumpe:
 		bra jumpd
 fin:
 		rts
+.endproc
+
+.export _fillChar   ; fillWindow for placing different sized rectangles on the screen.
+
+.segment    "CODE"
+.proc    _fillChar: near
+
+.segment    "DATA"
+	numCols:
+		.byte $00
+	startCol:
+		.byte $00
+	startRow:
+		.byte $00
+	chr:
+		.byte $00
+	clr:
+		.byte $00
+
+.segment	"CODE"
+;.byte $FF
+	sta 	VERA_ADDR_LO				; By default, with fastcall, if the first variable is more than 16 bits, the high order bits
+	stx 	VERA_ADDR_MID 				; in a 24 bit addresswill be in sreg.  This is a zeropage register, and is why we include 
+	lda sreg 							; zeropage.inc.
+	ORA stride 
+	sta 	VERA_ADDR_HI
+	jsr popax
+	sta clr
+	stx chr
+	jsr popax
+	sta startRow
+	stx startCol
+	jsr popa
+	cmp #$20
+	beq jump32
+	cmp #$40
+	beq jump64
+	cmp #$80
+	beq jump128
+	jmp jump256
+jump32:
+	lda startRow
+	ldx startCol
+	jsr AddCwRowColToVAddr32
+	jmp jumpc
+jump64:
+	lda startRow
+	ldx startCol
+	jsr AddCwRowColToVAddr64
+	jmp jumpc
+jump128:
+	lda startRow
+	ldx startCol
+	jsr AddCwRowColToVAddr128
+	jmp jumpc
+jump256:
+	lda startRow
+	ldx startCol
+	jsr AddCwRowColToVAddr256
+jumpc:
+	lda chr
+	sta VERA_DATA0					; store char
+	lda clr
+	sta VERA_DATA0					; store color
+fin:
+	rts
 .endproc
 
 .export Add_A_ToVAddr					; The rest of this is pretty much about finding the location in video memory

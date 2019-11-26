@@ -3,11 +3,12 @@
 // order.
 
 extern void setDataPort(uint8_t stride, uint8_t data_port);
-extern void setScreenScale(uint8_t hscale, uint8_t vscale);
+extern void setScreenScale(uint8_t hscale, uint8_t vscale, uint8_t mode);
 extern void layer0Setup(uint8_t modeenable, uint8_t mapSize, int16_t mapBase, int16_t font, int16_t hscroll, int16_t vscroll);
 extern void layer1Setup(uint8_t modeenable, uint8_t mapSize, int16_t mapBase, int16_t font, int16_t hscroll, int16_t vscroll);
 extern void copyData();  //This is temporary, need to create a real function here.  For now it will just trigger a local copy.
 extern void fillWindow(uint8_t numCols, uint8_t startCol, uint8_t startRow, uint8_t wdth, uint8_t hght, uint8_t chr, uint8_t clr, uint32_t layerMap);  //, uint8_t numCols, uint8_t startCol, uint8_t startRow, uint8_t width, uint8_t height, uint8_t char, uint8_t color
+extern void fillChar(uint8_t numCols, uint8_t startCol, uint8_t startRow, uint8_t chr, uint8_t clr, uint32_t layerMap);
 
 // Various memory addresses Vera uses.  These are values that need to be passed from the C program to the Assembly language functions
 // For one reason or another.  This gives them some nicer names that can be used from C.
