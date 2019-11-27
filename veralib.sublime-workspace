@@ -3,10 +3,66 @@
 	{
 		"selected_items":
 		[
+			[
+				"num",
+				"numCols"
+			],
+			[
+				"VERA",
+				"VERA_DATA0"
+			],
+			[
+				"VER",
+				"VERA_DATA0"
+			],
+			[
+				"L0",
+				"L0_CTRL0"
+			],
+			[
+				"ADD",
+				"ADDMODENABLE"
+			]
 		]
 	},
 	"buffers":
 	[
+		{
+			"file": "src/vera.s",
+			"settings":
+			{
+				"buffer_size": 13212,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/Makefile",
+			"settings":
+			{
+				"buffer_size": 546,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/vera.h",
+			"settings":
+			{
+				"buffer_size": 2244,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "res/font-hud.bin",
+			"settings":
+			{
+				"buffer_size": 1930,
+				"encoding": "Hexadecimal",
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "Packages/Makefile/Make.sublime-build",
 	"build_system_choices":
@@ -57,10 +113,16 @@
 	},
 	"expanded_folders":
 	[
-		"/D/OneDrive/X16Dev/source/vera"
+		"/D/OneDrive/X16Dev/source/vera",
+		"/D/OneDrive/X16Dev/source/vera/res",
+		"/D/OneDrive/X16Dev/source/vera/src"
 	],
 	"file_history":
 	[
+		"/D/OneDrive/X16Dev/source/vera/res/font-hud.bin",
+		"/C/Users/techr/AppData/Local/Temp/Rar$DIa11920.5410/vpoke.s",
+		"/D/OneDrive/X16Dev/source/vera/src/Makefile",
+		"/D/OneDrive/X16Dev/source/vera/Makefile",
 		"/D/OneDrive/X16Dev/source/compare/rom33.sym",
 		"/D/OneDrive/X16Dev/source/compare/rom34.sym",
 		"/D/OneDrive/X16Dev/source/layerscroll/layerscroll.lst",
@@ -84,7 +146,7 @@
 	],
 	"find":
 	{
-		"height": 40.4444444444
+		"height": 43.0
 	},
 	"find_in_files":
 	{
@@ -98,6 +160,12 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"VREG",
+			"FONT",
+			".byte $FF",
+			"wpoke",
+			"bpoke",
+			"ar65",
 			"mapchar"
 		],
 		"highlight": true,
@@ -116,18 +184,138 @@
 	"groups":
 	[
 		{
+			"selected": 4,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "src/vera.s",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 13212,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9349,
+								9349
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/User/Package Control.cache/6510.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 7658.22222222,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/Makefile",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 546,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								327,
+								327
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Makefile/Makefile.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/vera.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2244,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1097,
+								1097
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax"
+						},
+						"translation.x": 96.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"file": "res/font-hud.png",
+					"semi_transient": false,
+					"stack_index": 1,
+					"type": "image"
+				},
+				{
+					"buffer": 3,
+					"file": "res/font-hud.bin",
+					"semi_transient": true,
+					"settings":
+					{
+						"buffer_size": 1930,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
 			]
 		}
 	],
 	"incremental_find":
 	{
-		"height": 28.0
+		"height": 31.0
 	},
 	"input":
 	{
-		"height": 0.0
+		"height": 40.4444444444
 	},
 	"layout":
 	{
@@ -154,7 +342,7 @@
 	"menu_visible": true,
 	"output.exec":
 	{
-		"height": 126.0
+		"height": 288.0
 	},
 	"output.find_results":
 	{
@@ -164,7 +352,7 @@
 	"project": "veralib.sublime-project",
 	"replace":
 	{
-		"height": 52.0
+		"height": 58.0
 	},
 	"save_all_on_build": true,
 	"select_file":

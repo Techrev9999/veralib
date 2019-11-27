@@ -224,23 +224,26 @@
 
 .segment    "DATA"
 	count:
-		.byte  $00
+		.word  $0000
 .segment "ZEROPAGE"
 	sourceaddr:
 		.word $0000
 
 .segment    "CODE"
 ;.byte $FF
-    ;hard coded for now, but eventually this will be turned into parameters.  Need to get things funcioning before I create extra complexity.
-    VADDR PALETTE
-;.byte $FF
-    lda #<palette
+	sta 	VERA_ADDR_LO				; By default, with fastcall, if the first variable is more than 16 bits, the high order bits
+	stx 	VERA_ADDR_MID 				; in a 24 bit addresswill be in sreg.  This is a zeropage register, and is why we include 
+	lda sreg 							; zeropage.inc.
+	ORA stride 
+	sta 	VERA_ADDR_HI
+	jsr popax
     sta sourceaddr  
-    lda #>palette
-    sta sourceaddr +1
-    lda #$02   ;number of bytes to copy over high order
+    stx sourceaddr +1
+	jsr popax
     sta count
-    ldx #$00   ;number of bytest low order
+	stx count + 1
+	lda count + 1
+	ldx count
     beq loophi
 looploinit:
 	ldy #$00
@@ -252,39 +255,11 @@ looplo:
 	bne looplo						; continue if more bytes to xfer
 	inc sourceaddr +1	; increment src(hi) by 1
 loophi:
-	lda count
+	lda count + 1
 	beq fin
-	dec count
+	dec count + 1
 	bra looploinit
 fin:
-;.byte $FF
-	VADDR FONT_LPETSCII
- ;.byte $FF
-    lda #<fonthud
-    sta sourceaddr
-    lda #>fonthud
-    sta sourceaddr + 1
-    lda #$08
-    sta count
-    ldx #$00
-    beq loophi2
-looploinit2:
-	ldy #$00
-looplo2:
-	lda (sourceaddr), y		; load A with source + y
-	sta VERA_DATA0		; store in data0
-	iny
-	dex
-	bne looplo2						; continue if more bytes to xfer
-
-	inc sourceaddr + 1		; increment src(hi) by 1
-loophi2:
-	lda count
-	beq fin2
-	dec count
-	bra looploinit2
-fin2:
-;.byte $FF
     rts
 .endproc
 
@@ -343,6 +318,10 @@ fin2:
 	beq jump128
 	jmp jump256
 jump32:
+	lda numCols
+	sbc width
+	asl a
+	sta winc
 	lda startRow
 	ldx startCol
 	jsr AddCwRowColToVAddr32
@@ -627,16 +606,3 @@ fin:
 		jsr AddCwColToVAddr
 		rts
 .endproc
-
-; Still to add for the short term are the fillChar functions.
-
-
-; This belongs in the C-Code, and passed here.  Moving this out of the library is one of my next tasks.
-; Anything that is specific to a game or program should not be in the library at all.  Unless I add a
-; default font and palette here that can be overwritten or something.
-
-.segment "DATA"
-	fonthud:
-		.incbin "../res/font-hud.bin"
-	palette:	
-		.incbin "../res/palette.bin"
