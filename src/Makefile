@@ -3,9 +3,9 @@
 
 
 # Library output directory.  Your C program will have to link the vera.lib file created here into your C program.
-LIBRARIES = D:\\OneDrive\\X16Dev\\source\\lib
+LIBRARIES = ../../lib
 # Header output directory.  Your C program will have to include the vera.h file that is copied here.
-INCLUDE = D:\\OneDrive\\X16Dev\\source\\header
+INCLUDE = ../../header
 
 FILES=\
 	vera.s
@@ -14,8 +14,7 @@ FILES=\
 vera.lib: $(FILES)
 	ca65 -t cx16 vera.s
 	ar65 r vera.lib vera.o
-
-	-copy *.lib $(LIBRARIES)
-	-copy *.h $(INCLUDE)
-	-echo y | del *.o
-	-echo y | del *.lib
+	cp *.lib $(LIBRARIES)
+	cp *.h $(INCLUDE)
+	rm *.o
+	rm *.lib
