@@ -1,4 +1,4 @@
-// This is where we define the functions we have set up in assembler.  The variable names aren't really imporant.
+// This is where we define the functions we have set up in assembler.  The variable names aren't really important.
 // However, the variable type is.  When called from C, the C compiler will push these values on the stack in reverse
 // order.
 
