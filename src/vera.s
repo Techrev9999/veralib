@@ -4,7 +4,7 @@
 
 ; Much of this code was stolen from Mick Clift and jdifelici from the Murray forums.  I did all the stuff linking to C
 ; and I reworked some bits here and there - including getting it to work with .34 version of the emulator.  Many of the
-; functions have been drastically reworked, but enough of the original code is still here to give credit to the original
+; function s have been drastically reworked, but enough of the original code is still here to give credit to the original
 ; authors.  Who, if they have any issues with me using their code here, they can let me know and I'll remove it and replace
 ; it with something else.
 ; If anyone wants to use this, feel free.  Just give credit where credit is due :D.
@@ -520,8 +520,6 @@ fin:
 	startCol:
 		.byte $00
 .segment    "CODE"
-;.byte $FF
-		;lda cw_row call with startRow in a, startCol in x.
 		sta startRow
 		stx startCol
 		lsr a
